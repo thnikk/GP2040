@@ -1,5 +1,3 @@
-# GP2040 Configuration for Fightboard and Fightboard MX
+# GP2040 Configuration for Fightboard v3
 
-The Fightboard and Fightboard MX come with the ItsyBitsy 32u4. If you're brave/skilled enough, you can *upgrade* your Fightboard with an ItsyBitsy RP2040 running GP2040 firmware. This is an example pin mapping for a possible DIY swap.
-
-![Pin Mapping](assets/PinMapping.png)
+This configuration is for an RP2040-based Fightboard using a KB2040.
