@@ -298,6 +298,7 @@ void addStaticThemes(LEDOptions options)
 	StaticTheme::AddTheme(themeGuiltyGearTypeC);
 	StaticTheme::AddTheme(themeGuiltyGearTypeD);
 	StaticTheme::AddTheme(themeGuiltyGearTypeE);
+
 	StaticTheme::AddTheme(themeFightboard);
 }
 
