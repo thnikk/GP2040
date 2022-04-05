@@ -8,13 +8,17 @@
 #include "storage.h"
 #include "pico/stdlib.h"
 #include "OneBitDisplay.h"
+#include "AnimationStation.hpp"
 #include <deque>
+#include <vector>
 
 uint8_t ucBackBuffer[1024];
 OBDISP obd;
 string statusBar;
 std::deque<string> history;
-bool splashCheck = 0;
+AnimationStation ledSettings;
+uint8_t selection=0;
+uint8_t menuDepth=0;
 
 inline void clearScreen(int render = 0)
 {
@@ -167,6 +171,68 @@ inline void drawStatusBar()
 	obdWriteString(&obd, 0, 0, 0, (char *)statusBar.c_str(), FONT_6x8, 0, 0);
 }
 
+vector<vector<string>> menu = {
+    {"LED modes","Off", "Static color", "Rainbow cycle", "Rainbow chase", "Static theme"},
+    {"Brightness", "25%", "50%", "75%", "100%"},
+    {"Press color", "Black", "White", "Red", "Orange", "Yellow", "LimeGreen", "Green", "Seafoam", "Aqua", "SkyBlue", "Blue", "Purple", "Pink", "Magenta" },
+    {"Theme", "Rainbow", "Xbox", "Xbox (All)", "Super Famicom", "Super Famicom (All)"},
+    {"Input mode", "Switch", "XInput", "Directinput"},
+    {"Directional mode", "D-pad", "Left analog", "Right analog"},
+    {"SOCD mode", "Neutral", "Up priority", "Last input priority"}
+};
+
+inline void drawMainMenu(uint8_t sel)
+{
+    clearScreen(0);
+    uint8_t length = menu.size();
+    uint8_t offset = 0;
+    obdWriteString(&obd, 0, 0, 0, (char *)"Main menu", FONT_12x16, 0, 0);
+
+    uint8_t cap = 6;
+    if (length >= 6 && sel >= 6) offset = ((sel)/ 6) * 6;
+    if (length - offset < 6) cap = (length)%6;
+
+    for (uint8_t i=0; i<cap; i++) {
+        bool invert = 0;
+        if (i == sel-offset) invert=1;
+        obdWriteString(&obd, 0, 0, i+2, (char *)menu[i+offset][0].c_str(), FONT_6x8, invert, 0);
+    }
+
+    obdDumpBuffer(&obd, NULL);
+}
+
+uint8_t scrollpos = 0;
+inline void drawMenu(uint8_t index, uint8_t active, uint8_t sel, Gamepad *gamepad)
+{
+    clearScreen();
+    uint8_t length = menu[index].size();
+    uint8_t offset = 0;
+    //uint8_t titleLength = menu[index][0].length();
+    //if (titleLength > 10) {
+        //if (getMillis()%10 == 0) {
+            //if (scrollpos <= (titleLength*12)-128) scrollpos++;
+            //if (scrollpos == (titleLength*12)-128) scrollpos = 0;
+        //}
+    //}
+    obdWriteString(&obd, scrollpos, 0, 0, (char *)menu[index][0].c_str(), FONT_12x16, 0, 0);
+
+    uint8_t cap = 6;
+    if (length > 7 && sel >= 6) offset = ((sel)/ 6) * 6;
+    // This needs to be greater than 7 because of the index
+    if (length - offset < 7) cap = (length-1)%6;
+
+    for (uint8_t i=0; i<cap; i++) {
+        bool invert = 0;
+        if (i == sel-offset) invert=1;
+        string line = menu[index][1+i+offset];
+        if (i == active-offset) line+="*";
+                                                            // +1 to ignore label entry, i for index, and offset to jump to a page
+        obdWriteString(&obd, 0, 0, i+2, (char *)line.c_str(), FONT_6x8, invert, 0);
+    }
+
+    obdDumpBuffer(&obd, NULL);
+}
+
 inline void drawHistory()
 {
 	std::string ret;
@@ -307,13 +373,108 @@ void DisplayModule::loop()
 	// All screen updates should be handled in process() as they need to display ASAP
 }
 
+bool pressedNav[4];
+bool splashCheck = 0;
+uint8_t menuIndex = 0;
 void DisplayModule::process(Gamepad *gamepad)
 {
+    if (gamepad->pressedL3() && gamepad->pressedR3() && menuDepth == 0) menuDepth = 1;
+    if (gamepad->pressedLeft() && pressedNav[3] == 0 && menuDepth > 0){
+        pressedNav[3] = 1;
+        menuDepth -= 1;
+        selection = 0;
+        if (menuIndex > 0) menuIndex = 0;
+    }
+    if (!gamepad->pressedLeft()) pressedNav[3]=0;
+
     if (getMillis() < 2000) {
         if (splashCheck == 0){
             drawSplashScreen();
             splashCheck = 1;
         }
+	} if (menuDepth == 1) {
+        uint8_t length = menu.size();
+        if (gamepad->pressedUp() && pressedNav[0] == 0){
+            pressedNav[0] = 1;
+            if (selection > 0) selection-=1;
+        }
+        if (!gamepad->pressedUp()) pressedNav[0]=0;
+        if (gamepad->pressedDown() && pressedNav[1] == 0) {
+            pressedNav[1] = 1;
+            //
+            if (selection < length-1) selection+=1;
+        }
+        if (!gamepad->pressedDown()) pressedNav[1]=0;
+        if (gamepad->pressedRight() && pressedNav[2] == 0) {
+            pressedNav[2] = 1;
+            // If moving deeper
+            if (menuDepth == 1) {
+                menuDepth = 2;
+                menuIndex = selection;
+                selection = 0;
+            } else {
+                // Change settings here with function
+            }
+        }
+        if (!gamepad->pressedRight()) pressedNav[2]=0;
+        drawMainMenu(selection);
+    }
+
+    else if (menuDepth > 1) {
+        uint8_t length = menu[menuIndex].size();
+
+        if (gamepad->pressedUp() && pressedNav[0] == 0){
+            pressedNav[0] = 1;
+            if (selection > 0) selection-=1;
+        }
+        if (!gamepad->pressedUp()) pressedNav[0]=0;
+        if (gamepad->pressedDown() && pressedNav[1] == 0) {
+            pressedNav[1] = 1;
+            if (selection < length-2) selection+=1;
+        }
+        if (!gamepad->pressedDown()) pressedNav[1]=0;
+        if (gamepad->pressedRight() && pressedNav[2] == 0) {
+            pressedNav[2] = 1;
+            // Change settings here with function
+        }
+        if (!gamepad->pressedRight()) pressedNav[2]=0;
+
+        // Get active settings for index
+        int active = -1;
+        switch (menuIndex) {
+            // LED mode
+            case 0:
+                active = ledSettings.GetMode();
+                break;
+            case 4:
+                switch (gamepad->options.inputMode){
+                    case INPUT_MODE_SWITCH:     active = 0; break;
+                    case INPUT_MODE_XINPUT:     active = 1; break;
+                    case INPUT_MODE_HID:        active = 2; break;
+                }
+                break;
+            case 5:
+                switch (gamepad->options.dpadMode){
+                    case DPAD_MODE_DIGITAL:      active = 0; break;
+                    case DPAD_MODE_LEFT_ANALOG:  active = 1; break;
+                    case DPAD_MODE_RIGHT_ANALOG: active = 2; break;
+                }
+                break;
+            case 6:
+                switch (gamepad->options.socdMode)
+                {
+                    case SOCD_MODE_NEUTRAL:               active = 0; break;
+                    case SOCD_MODE_UP_PRIORITY:           active = 1; break;
+                    case SOCD_MODE_SECOND_INPUT_PRIORITY: active = 2; break;
+                }
+                break;
+
+        }
+
+
+
+        drawMenu(menuIndex, active, selection, gamepad);
+
     } else {
 		clearScreen();
 
