@@ -65,6 +65,35 @@ inline void drawWasdBox(int startX, int startY, int buttonRadius, int buttonPadd
 	obdPreciseEllipse(&obd, startX + buttonMargin * 6.25, startY + buttonMargin, buttonRadius, buttonRadius, 1, gamepad->pressedL2());
 }
 
+inline void drawFightboard(int startX, int startY, int buttonRadius, int buttonPadding, Gamepad *gamepad)
+{
+	const int buttonMargin = buttonPadding + (buttonRadius * 2);
+
+	// UDLR
+	obdPreciseEllipse(&obd, startX, startY + buttonMargin * 0.5, buttonRadius, buttonRadius, 1, gamepad->pressedLeft());
+	obdPreciseEllipse(&obd, startX + buttonMargin, startY + buttonMargin * 0.875, buttonRadius, buttonRadius, 1, gamepad->pressedDown());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 1.5, startY - buttonMargin * 0.125, buttonRadius, buttonRadius, 1, gamepad->pressedUp());
+	obdPreciseEllipse(&obd, startX + (buttonMargin * 2), startY + buttonMargin * 1.25, buttonRadius, buttonRadius, 1, gamepad->pressedRight());
+
+	// 8-button
+	obdPreciseEllipse(&obd, startX + buttonMargin * 3.625, startY * 1.25, buttonRadius, buttonRadius, 1, gamepad->pressedB3());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 4.625, startY - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedB4());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 5.625, startY - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedR1());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 6.625, startY - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedL1());
+
+	obdPreciseEllipse(&obd, startX + buttonMargin * 3.625, startY + buttonMargin * 1.25, buttonRadius, buttonRadius, 1, gamepad->pressedB1());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 4.625, startY + buttonMargin - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedB2());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 5.625, startY + buttonMargin - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedR2());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 6.625, startY + buttonMargin - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedL2());
+
+    // Extra buttons
+	obdPreciseEllipse(&obd, startX + buttonMargin * 4.5, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedL3());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 5.0625, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedS1());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 5.625, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedA1());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 6.125+0.0625, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedS2());
+	obdPreciseEllipse(&obd, startX + buttonMargin * 6.75, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedR3());
+}
+
 inline void drawArcadeStick(int startX, int startY, int buttonRadius, int buttonPadding, Gamepad *gamepad)
 {
 	const int buttonMargin = buttonPadding + (buttonRadius * 2);
@@ -260,6 +289,21 @@ void setHistory(Gamepad *gamepad)
 	if (gamepad->pressedL1())
 		pressed.push_back("4P");
 
+	if (gamepad->pressedL3())
+		pressed.push_back("L3");
+
+	if (gamepad->pressedS1())
+		pressed.push_back("S1");
+
+	if (gamepad->pressedA1())
+		pressed.push_back("A1");
+
+	if (gamepad->pressedS2())
+		pressed.push_back("S2");
+
+	if (gamepad->pressedR3())
+		pressed.push_back("R3");
+
 	if (pressed.size() > 0) {
 	    std::string newInput;
 	    for(const auto &s : pressed) {
@@ -334,6 +378,9 @@ void DisplayModule::process(Gamepad *gamepad)
 
             case BUTTON_LAYOUT_WASD:
                 drawWasdBox(8, 22, 7, 3, gamepad);
+                break;
+            case BUTTON_LAYOUT_FIGHTBOARD:
+                drawFightboard(8, 22, 7, 3, gamepad);
                 break;
         }
 

@@ -200,6 +200,9 @@ vector<vector<Pixel>> createLedButtonLayout(ButtonLayout layout, vector<vector<u
 
 		case BUTTON_LAYOUT_WASD:
 			return createLedLayoutArcadeWasd(positions);
+
+		case BUTTON_LAYOUT_FIGHTBOARD:
+			return createLedLayoutArcadeWasd(positions);
 	}
 }
 
