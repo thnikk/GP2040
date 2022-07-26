@@ -475,7 +475,6 @@ void DisplayModule::process(Gamepad *gamepad)
             drawSplashScreen();
             splashCheck = 1;
         }
-<<<<<<< HEAD
 	} if (menuDepth == 1) {
         uint8_t length = menu.size();
         if (gamepad->pressedUp() && pressedNav[0] == 0){
