@@ -32,6 +32,10 @@ queue_t buttonAnimationQueue;
 queue_t animationSaveQueue;
 map<string, int> buttonPositions;
 
+unsigned long idleTimer;
+uint8_t saveBrightness;
+uint8_t brightnessCheck;
+
 inline vector<uint8_t> *getLEDPositions(string button, vector<vector<uint8_t>> *positions)
 {
 	int buttonPosition = buttonPositions[button];
@@ -324,6 +328,29 @@ void LEDModule::setup()
 	}
 }
 
+void checkButtons(Gamepad *gamepad)
+{
+    if (gamepad->pressedUp()
+            || gamepad->pressedDown()
+            || gamepad->pressedLeft()
+            || gamepad->pressedRight()
+            || gamepad->pressedL1()
+            || gamepad->pressedL2()
+            || gamepad->pressedL3()
+            || gamepad->pressedR1()
+            || gamepad->pressedR2()
+            || gamepad->pressedR3()
+            || gamepad->pressedB1()
+            || gamepad->pressedB2()
+            || gamepad->pressedB3()
+            || gamepad->pressedB4()
+            || gamepad->pressedS1()
+            || gamepad->pressedS2()
+            || gamepad->pressedA1())
+        idleTimer = getMillis();
+}
+
+
 void LEDModule::process(Gamepad *gamepad)
 {
 	AnimationHotkey action = animationHotkeys(gamepad);
@@ -332,6 +359,7 @@ void LEDModule::process(Gamepad *gamepad)
 
 	uint32_t buttonState = gamepad->state.dpad << 16 | gamepad->state.buttons;
 	queue_try_add(&buttonAnimationQueue, &buttonState);
+    checkButtons(gamepad);
 }
 
 void LEDModule::loop()
@@ -367,7 +395,22 @@ void LEDModule::loop()
 	}
 
 	as.Animate();
-	as.ApplyBrightness(frame);
+    as.ApplyBrightness(frame);
+
+	Animation::format = ledOptions.ledFormat;
+    if (getMillis() - idleTimer > IDLE_TIMEOUT_MS) {
+        if(brightnessCheck == 0) {
+            brightnessCheck = 1;
+            saveBrightness = as.GetBrightness();
+        }
+        if (as.GetBrightness() > 0) as.DecreaseBrightness();
+    }
+    else {
+        if (brightnessCheck == 1) {
+            if (as.GetBrightness() < saveBrightness) as.IncreaseBrightness();
+            else brightnessCheck = 0;
+        }
+    }
 
 	if (PLED_TYPE == PLED_TYPE_RGB)
 		setRGBPLEDs(frame); // PLEDs have their own brightness values, call this after as.ApplyBrightness()
