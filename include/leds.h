@@ -149,6 +149,7 @@ public:
 	void setup();
 	void loop();
 	void process(Gamepad *gamepad);
+	void checkKeys(Gamepad *gamepad);
 	void trySave();
 	void configureLEDs();
 	uint32_t frame[100];
