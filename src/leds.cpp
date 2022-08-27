@@ -207,6 +207,9 @@ vector<vector<Pixel>> createLedButtonLayout(ButtonLayout layout, vector<vector<u
 
 		case BUTTON_LAYOUT_FIGHTBOARD:
 			return createLedLayoutArcadeWasd(positions);
+		
+        case BUTTON_LAYOUT_FIGHTBOARD_MIRROR:
+			return createLedLayoutArcadeWasd(positions);
 	}
 }
 
@@ -330,10 +333,10 @@ void LEDModule::setup()
 
 void checkButtons(Gamepad *gamepad)
 {
-    if (gamepad->pressedUp()
-            || gamepad->pressedDown()
-            || gamepad->pressedLeft()
-            || gamepad->pressedRight()
+    if (!gpio_get(PIN_DPAD_UP)
+            || !gpio_get(PIN_DPAD_DOWN) 
+            || !gpio_get(PIN_DPAD_LEFT) 
+            || !gpio_get(PIN_DPAD_RIGHT) 
             || gamepad->pressedL1()
             || gamepad->pressedL2()
             || gamepad->pressedL3()

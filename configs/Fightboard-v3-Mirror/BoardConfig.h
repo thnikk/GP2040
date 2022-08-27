@@ -23,10 +23,10 @@
 #define PIN_BUTTON_B3  15
 #define PIN_BUTTON_B4  28
 #define PIN_BUTTON_R1  27
-#define PIN_BUTTON_R2  26
+#define PIN_BUTTON_R2  13
 #define PIN_BUTTON_B1  9
 #define PIN_BUTTON_B2  12
-#define PIN_BUTTON_L1  13
+#define PIN_BUTTON_L1  26
 #define PIN_BUTTON_L2  14
 #define PIN_BUTTON_S1  7
 #define PIN_BUTTON_S2  5
@@ -36,7 +36,7 @@
 #define PIN_BUTTON_A2  17 // Not connected
 
 #define DEFAULT_SOCD_MODE SOCD_MODE_NEUTRAL
-#define BUTTON_LAYOUT BUTTON_LAYOUT_FIGHTBOARD
+#define BUTTON_LAYOUT BUTTON_LAYOUT_FIGHTBOARD_MIRROR
 
 #define BOARD_LEDS_PIN 29
 
@@ -79,6 +79,6 @@
 #define LEDS_BUTTON_COLOR_INDEX 0
 
 // Set idle timeout
-#define IDLE_TIMEOUT_MS 300000
+#define IDLE_TIMEOUT_MS 60000
 
 #endif

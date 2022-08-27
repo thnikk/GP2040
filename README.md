@@ -1,3 +1,20 @@
+# Fightboard v3 Fork
+
+Development is in a bit of an odd spot for this firmware at the moment. The upstream repo is abandoned, and development is continuing on the [GP2040-CE](https://github.com/OpenStickFoundation/GP2040-CE) repo. Things are currently a bit too active there with some of the core code changing, so I'll continue to work on my fork for the time being. The current changes are:
+
+- [x] Splash screen (#58)
+- [x] On-screen input history (#48)
+- [x] Idle timeout
+- [x] Display reacts properly if using analog stick modes for directional buttons
+
+Things that need to be fixed or added are:
+
+- [ ] On-screen configuration menu
+- [ ] Fix analog stick modes not updating LEDs
+- [ ] Button remapping
+
+I don't think it's worth investing any time into adding any more configuration options to the web configurator. It's only compatible with Windows and requires the Fightboard to be booted into a special mode, so it should effectively be completely replaced by the on-screen menu. There has been some work done on it in the menu branch, but the code is messy and requires cleanup.
+
 # GP2040 Firmware
 
 GP2040 is a gamepad firmware for the Raspberry Pi Pico and other boards based on the RP2040 microcontroller, and provides high performance with a rich feature set across multiple platforms. GP2040 is compatible with PC, MiSTer, Android, Raspberry Pi, Nintendo Switch, PS3 and PS4 (legacy controller support).

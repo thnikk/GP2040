@@ -26,6 +26,11 @@ uint8_t wakeCheck = 2;
 #define numStars 16
 uint8_t stars[numStars][2];
 
+bool state_up = 0;
+bool state_down = 0;
+bool state_left = 0;
+bool state_right = 0;
+
 inline void clearScreen(int render = 0)
 {
 	obdFill(&obd, 0, render);
@@ -75,16 +80,31 @@ inline void drawWasdBox(int startX, int startY, int buttonRadius, int buttonPadd
 	obdPreciseEllipse(&obd, startX + buttonMargin * 6.25, startY + buttonMargin, buttonRadius, buttonRadius, 1, gamepad->pressedL2());
 }
 
-inline void drawFightboard(int startX, int startY, int buttonRadius, int buttonPadding, Gamepad *gamepad)
+inline void drawFightboard(int startX, int startY, int buttonRadius, int buttonPadding, bool invert, Gamepad *gamepad)
 {
 	const int buttonMargin = buttonPadding + (buttonRadius * 2);
 
-	// UDLR
-	obdPreciseEllipse(&obd, startX, startY + buttonMargin * 0.5, buttonRadius, buttonRadius, 1, gamepad->pressedLeft());
-	obdPreciseEllipse(&obd, startX + buttonMargin, startY + buttonMargin * 0.875, buttonRadius, buttonRadius, 1, gamepad->pressedDown());
-	obdPreciseEllipse(&obd, startX + buttonMargin * 1.5, startY - buttonMargin * 0.125, buttonRadius, buttonRadius, 1, gamepad->pressedUp());
-	obdPreciseEllipse(&obd, startX + (buttonMargin * 2), startY + buttonMargin * 1.25, buttonRadius, buttonRadius, 1, gamepad->pressedRight());
 
+std::string ret;
+
+    // Check analog stick value
+    //std::string num = std::to_string(gamepad->state.lx);
+	//obdWriteString(&obd, 1, 0, 0, (char *)num.c_str(), FONT_6x8, 0, 0);
+
+	// UDLR
+    //obdPreciseEllipse(&obd, startX, startY + buttonMargin * 0.5, buttonRadius, buttonRadius, 1, !gpio_get(PIN_DPAD_LEFT));
+    //obdPreciseEllipse(&obd, startX + buttonMargin, startY + buttonMargin * 0.875, buttonRadius, buttonRadius, 1, !gpio_get(PIN_DPAD_DOWN));
+    //obdPreciseEllipse(&obd, startX + buttonMargin * 1.5, startY - buttonMargin * 0.125, buttonRadius, buttonRadius, 1, !gpio_get(PIN_DPAD_UP));
+    //obdPreciseEllipse(&obd, startX + (buttonMargin * 2), startY + buttonMargin * 1.25, buttonRadius, buttonRadius, 1, !gpio_get(PIN_DPAD_RIGHT));
+    obdPreciseEllipse(&obd, startX + buttonMargin, startY + (buttonMargin / 2), buttonRadius * 1.5, buttonRadius * 1.5, 1, 0);
+    obdPreciseEllipse(&obd, 
+            startX + buttonMargin + (buttonMargin/2 * state_right) - (buttonMargin/2 * state_left),
+            startY + (buttonMargin / 2) + (buttonMargin/2 * state_down) - (buttonMargin/2 * state_up),
+            buttonRadius * 1.25,
+            buttonRadius * 1.25,
+            1,
+            1);
+	
 	// 8-button
 	obdPreciseEllipse(&obd, startX + buttonMargin * 3.625, startY * 1.25, buttonRadius, buttonRadius, 1, gamepad->pressedB3());
 	obdPreciseEllipse(&obd, startX + buttonMargin * 4.625, startY - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedB4());
@@ -102,6 +122,46 @@ inline void drawFightboard(int startX, int startY, int buttonRadius, int buttonP
 	obdPreciseEllipse(&obd, startX + buttonMargin * 5.625, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedA1());
 	obdPreciseEllipse(&obd, startX + buttonMargin * 6.125+0.0625, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedS2());
 	obdPreciseEllipse(&obd, startX + buttonMargin * 6.75, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedR3());
+}
+
+inline void drawFightboardMirror(int startX, int startY, int buttonRadius, int buttonPadding, Gamepad *gamepad)
+{
+	const int buttonMargin = buttonPadding + (buttonRadius * 2);
+
+    startX = 128 - startX;
+
+    obdPreciseEllipse(&obd, startX - buttonMargin, startY + (buttonMargin / 2), buttonRadius * 1.5, buttonRadius * 1.5, 1, 0);
+    obdPreciseEllipse(&obd, 
+            startX - buttonMargin + (buttonMargin/2 * state_right) - (buttonMargin/2 * state_left),
+            startY + (buttonMargin / 2) + (buttonMargin/2 * state_down) - (buttonMargin/2 * state_up),
+            buttonRadius * 1.25,
+            buttonRadius * 1.25,
+            1,
+            1);
+
+	// UDLR
+	//obdPreciseEllipse(&obd, startX, startY + buttonMargin * 0.5, buttonRadius, buttonRadius, 1, gamepad->pressedRight());
+	//obdPreciseEllipse(&obd, startX - buttonMargin, startY + buttonMargin * 0.875, buttonRadius, buttonRadius, 1, gamepad->pressedDown());
+	//obdPreciseEllipse(&obd, startX - buttonMargin * 1.5, startY - buttonMargin * 0.125, buttonRadius, buttonRadius, 1, gamepad->pressedUp());
+	//obdPreciseEllipse(&obd, startX - (buttonMargin * 2), startY + buttonMargin * 1.25, buttonRadius, buttonRadius, 1, gamepad->pressedLeft());
+
+	// 8-button
+	obdPreciseEllipse(&obd, startX - buttonMargin * 3.625, startY * 1.25, buttonRadius, buttonRadius, 1, gamepad->pressedB3());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 4.625, startY - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedB4());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 5.625, startY - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedR1());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 6.625, startY - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedL1());
+
+	obdPreciseEllipse(&obd, startX - buttonMargin * 3.625, startY + buttonMargin * 1.25, buttonRadius, buttonRadius, 1, gamepad->pressedB1());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 4.625, startY + buttonMargin - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedB2());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 5.625, startY + buttonMargin - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedR2());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 6.625, startY + buttonMargin - (buttonMargin / 4), buttonRadius, buttonRadius, 1, gamepad->pressedL2());
+
+    // Extra buttons
+	obdPreciseEllipse(&obd, startX - buttonMargin * 4.5, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedR3());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 5.0625, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedS2());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 5.625, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedA1());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 6.125+0.0625, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedS1());
+	obdPreciseEllipse(&obd, startX - buttonMargin * 6.75, startY + (buttonMargin * 1.5), 3, 3, 1, gamepad->pressedL3());
 }
 
 inline void drawArcadeStick(int startX, int startY, int buttonRadius, int buttonPadding, Gamepad *gamepad)
@@ -286,20 +346,55 @@ void setStatusBar(Gamepad *gamepad)
 	}
 }
 
+// Get universal directional keys for SOCD cleaned outputs
+void getSOCD(Gamepad *gamepad){
+    
+    // Get the dpad mode
+	switch (gamepad->options.dpadMode)
+	{
+		case DPAD_MODE_DIGITAL:
+            state_up = gamepad->pressedUp();
+            state_down = gamepad->pressedDown();
+            state_left = gamepad->pressedLeft();
+            state_right = gamepad->pressedRight();
+            break;
+		case DPAD_MODE_LEFT_ANALOG:
+            if (gamepad->state.ly < 32767) state_up = 1;
+            else state_up = 0;
+            if (gamepad->state.ly > 32767) state_down = 1;
+            else state_down = 0;
+            if (gamepad->state.lx > 32767) state_right = 1;
+            else state_right = 0;
+            if (gamepad->state.lx < 32767) state_left = 1;
+            else state_left = 0;
+            break;
+		case DPAD_MODE_RIGHT_ANALOG:
+            if (gamepad->state.ry < 32767) state_up = 1;
+            else state_up = 0;
+            if (gamepad->state.ry > 32767) state_down = 1;
+            else state_down = 0;
+            if (gamepad->state.rx > 32767) state_right = 1;
+            else state_right = 0;
+            if (gamepad->state.rx < 32767) state_left = 1;
+            else state_left = 0;
+            break;
+	}
+}
+
 void setHistory(Gamepad *gamepad)
 {
 	std::deque<string> pressed;
 
-	if (gamepad->pressedUp())
+	if (state_up)
 		pressed.push_back("U");
 
-	if (gamepad->pressedDown())
+	if (state_down)
 		pressed.push_back("D");
 
-	if (gamepad->pressedLeft())
+	if (state_left)
 		pressed.push_back("L");
 
-	if (gamepad->pressedRight())
+	if (state_right)
 		pressed.push_back("R");
 
 	if (gamepad->pressedB1())
@@ -341,7 +436,7 @@ void setHistory(Gamepad *gamepad)
 	if (gamepad->pressedR3())
 		pressed.push_back("R3");
 
-	if (pressed.size() > 0) {
+	if (pressed.size() > 0 || state_up || state_down || state_left ||state_right)  {
 	    std::string newInput;
 	    for(const auto &s : pressed) {
 	        if(!newInput.empty())
@@ -392,6 +487,7 @@ void DisplayModule::loop()
 
 void DisplayModule::process(Gamepad *gamepad)
 {
+    getSOCD(gamepad);
     if (getMillis() < 2000) {
         if (splashCheck == 0){
             drawSplashScreen();
@@ -437,7 +533,11 @@ void DisplayModule::process(Gamepad *gamepad)
                 drawWasdBox(8, 22, 7, 3, gamepad);
                 break;
             case BUTTON_LAYOUT_FIGHTBOARD:
-                drawFightboard(8, 22, 7, 3, gamepad);
+                drawFightboard(8, 22, 7, 3, 0, gamepad);
+                break;
+            case BUTTON_LAYOUT_FIGHTBOARD_MIRROR:
+                drawFightboardMirror(8, 22, 7, 3, gamepad);
+                //drawFightboard(8, 22, 7, 3, 1, gamepad);
                 break;
         }
 
